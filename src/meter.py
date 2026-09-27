@@ -102,7 +102,7 @@ def selftest():
     import tempfile
     raw = {"providers": {"p": {"match": ["x"], "offpeak": {"miss": 0.15, "out": 0.60, "cache": 0.003},
                                "peak": {"miss": 0.30, "out": 1.20, "cache": 0.006}}},
-           "peak_windows_utc": [[1, 4], [6, 10]], "peak_weekdays_only": True}
+           "peak_windows_utc": [[12, 18]], "peak_weekdays_only": True}
     with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as f:
         json.dump(raw, f)
         path = f.name
@@ -119,10 +119,15 @@ def selftest():
     ok1 = usd == want
     # cold = (1.1M * 0.15 + 50k * 0.60)/1M = 0.165 + 0.03 = 0.195
     ok2 = cold == Decimal("0.195000")
-    # peak detection: 2026-09-15 is a Tuesday; 02:00 UTC is inside [1,4)
-    ts_peak = datetime(2026, 9, 15, 2, 0, tzinfo=timezone.utc).timestamp()
-    ts_off = datetime(2026, 9, 15, 12, 0, tzinfo=timezone.utc).timestamp()
-    ts_weekend = datetime(2026, 9, 19, 2, 0, tzinfo=timezone.utc).timestamp()  # Saturday
+    # peak detection. 2026-09-15 is a Tuesday. The window comes from the CONFIG under
+    # test, not from a hardcoded assumption -- a selftest that bakes in the same wrong
+    # window as the code it is testing proves nothing.
+    lo, hi = (cfg.get("peak_windows_utc") or [[12, 18]])[0]
+    mid = (lo + hi) // 2
+    out = 3 if hi <= 12 else 3           # an hour outside the window
+    ts_peak = datetime(2026, 9, 15, mid, 0, tzinfo=timezone.utc).timestamp()
+    ts_off = datetime(2026, 9, 15, out, 0, tzinfo=timezone.utc).timestamp()
+    ts_weekend = datetime(2026, 9, 19, mid, 0, tzinfo=timezone.utc).timestamp()  # Saturday
     ok3 = is_peak(cfg, ts_peak) and not is_peak(cfg, ts_off) and not is_peak(cfg, ts_weekend)
     print(f"  off-peak price == {want}      : {'PASS' if ok1 else 'FAIL'}  (got {usd})")
     print(f"  cold-cache    == {Decimal('0.195')}   : {'PASS' if ok2 else 'FAIL'}  (got {cold})")
@@ -133,7 +138,8 @@ def selftest():
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--db", default=os.path.expanduser("~/.hermes/state.db"))
-    ap.add_argument("--rates", required=False, help="rate table json")
+    ap.add_argument("--rates", default=None,
+                    help="rate table json (default: rates.json next to this script)")
     ap.add_argument("--days", type=int, default=1)
     ap.add_argument("--sessions", type=int, default=0)
     ap.add_argument("--session", default=None)

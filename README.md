@@ -3,12 +3,42 @@
 **A cost doctrine for running long agent sessions on metered inference budgets.**
 
 Lean burn is the engine principle of running on excess air — less fuel for the same power.
-The engine runs *leaner*, not idler. This is the same idea applied to token spend: same work,
-same model, a fraction of the bill, achieved by changing *how the session is shaped* rather
-than by shrinking what the session does.
+The engine runs *leaner*, not idler. Same idea, applied to token spend: same work, same model,
+a fraction of the bill, achieved by changing *how the session is shaped* rather than by shrinking
+what the session does.
 
-Published after the doctrine cut a real day of heavy work to a rounding error against what the
-same session would have cost with none of it applied.
+---
+
+## ⚠️ BEFORE YOU TRUST A NUMBER FROM THIS: the rate table is an INPUT, not the truth
+
+**This tool shipped carrying the wrong peak-price window — a different vendor's schedule — and
+reported peak/off-peak BACKWARDS the entire time.** The table had a date on it, said "verified", and
+described another company. A fixed table that *looks* measured is still a claim.
+
+Before reading anything this prints:
+
+1. **Open your provider's pricing page and edit `rates.json` yourself.** Prices and windows change.
+2. **`peak_windows_utc` is in UTC.** Leave it `[]` if your provider is flat-rate.
+3. **A session's regime comes from its timestamp.** Per-call timestamps are not stored, so a session
+   straddling a boundary is approximate — the tool says so, and it means it.
+
+Anything it cannot price is reported as **unpriced, never guessed**. If most sessions come back
+unpriced, that is the tool telling you the rate table is incomplete — not failing.
+
+---
+
+## Point it at YOUR ledger
+
+```bash
+python3 src/meter.py --selftest                              # proves the pricer can be wrong correctly
+python3 src/meter.py --db ~/your-agent/state.db --days 1
+python3 src/meter.py --db ~/your-agent/state.db --sessions 10
+python3 src/meter.py --db ~/your-agent/state.db --session <id>
+```
+
+It reads `sessions` with: `id, model, last_activity_at, started_at, input_tokens, output_tokens,
+cache_read_tokens, cache_write_tokens, reasoning_tokens, api_call_count, billing_provider`.
+**Different column names? Edit `WINDOW_SQL` at the top of `src/meter.py`.** Read-only, no network.
 
 ---
 

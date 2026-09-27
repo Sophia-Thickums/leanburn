@@ -1,48 +1,21 @@
 {
+  "_README": [
+    "RATES ARE NOT SHIPPED AS TRUTH. Edit this file for YOUR provider and YOUR actual bill.",
+    "A rate table that describes someone else's schedule reports peak/off-peak BACKWARDS and",
+    "you will not notice, because a wrong window still looks like a measurement.",
+    "Every price here must come from the vendor's own pricing page, checked the day you use it.",
+    "Peak windows are in UTC. Leave peak_windows_utc empty [] if your provider has one flat rate."
+  ],
+  "_verified": "2026-09-26 — Ollama Cloud pricing page. The DeepSeek DIRECT-API window that used",
+  "_verified_note": "to ship here (01:00-04:00, 06:00-10:00 UTC) is a DIFFERENT COMPANY'S schedule.",
   "providers": {
-    "deepseek-flash": {
-      "match": [
-        "deepseek-v4.1-flash",
-        "deepseek-flash",
-        "deepseek-v4-flash"
-      ],
-      "offpeak": {
-        "miss": 0.15,
-        "out": 0.6,
-        "cache": 0.003
-      },
-      "peak": {
-        "miss": 0.3,
-        "out": 1.2,
-        "cache": 0.006
-      },
-      "note": "verified 2026-09-15 from api-docs.deepseek.com/quick_start/pricing"
-    },
-    "deepseek-pro": {
-      "match": [
-        "deepseek-v4-pro"
-      ],
-      "offpeak": {
-        "miss": 0.66,
-        "out": 1.98,
-        "cache": 0.022
-      },
-      "peak": {
-        "miss": 1.32,
-        "out": 3.96,
-        "cache": 0.044
-      }
+    "ollama-cloud-deepseek": {
+      "match": ["deepseek-v4.1-flash", "deepseek-flash", "deepseek-v4-flash"],
+      "offpeak": { "miss": 0.15, "out": 0.6, "cache": 0.003 },
+      "peak":    { "miss": 0.3,  "out": 1.2, "cache": 0.006 },
+      "note": "VERIFY AT THE SOURCE before trusting. Doubling only applies to the deepseek family on Ollama Cloud; GLM is flat-rate all hours."
     }
   },
-  "peak_windows_utc": [
-    [
-      1,
-      4
-    ],
-    [
-      6,
-      10
-    ]
-  ],
+  "peak_windows_utc": [[12, 18]],
   "peak_weekdays_only": true
 }
